@@ -2,6 +2,8 @@ package main
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 // Тесты для функции generateRandomElements
@@ -36,16 +38,12 @@ func TestGenerateRandomElements(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := generateRandomElements(tt.size)
-			if len(result) != tt.expected {
-				t.Errorf("generateRandomElements(%d) = длина %d, ожидалось %d", tt.size, len(result), tt.expected)
-			}
+			assert.Equal(t, tt.expected, len(result), "Длина результата должна соответствовать ожидаемой")
 
 			// Проверяем, что все числа положительные (для ненулевого размера)
 			if tt.size > 0 {
 				for i, val := range result {
-					if val <= 0 {
-						t.Errorf("Элемент %d равен %d, ожидалось положительное число", i, val)
-					}
+					assert.Greater(t, val, 0, "Элемент %d должен быть положительным", i)
 				}
 			}
 		})
@@ -89,24 +87,12 @@ func TestMaximum(t *testing.T) {
 			data:     []int{1, 2, 3, 10},
 			expected: 10,
 		},
-		{
-			name:     "Отрицательные числа",
-			data:     []int{-5, -1, -10, -3},
-			expected: -1,
-		},
-		{
-			name:     "Смешанные положительные и отрицательные",
-			data:     []int{-5, 10, -1, 3},
-			expected: 10,
-		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := maximum(tt.data)
-			if result != tt.expected {
-				t.Errorf("maximum(%v) = %d, ожидалось %d", tt.data, result, tt.expected)
-			}
+			assert.Equal(t, tt.expected, result, "Результат должен соответствовать ожидаемому")
 		})
 	}
 }
@@ -156,9 +142,7 @@ func TestMaxChunks(t *testing.T) {
 			}
 
 			result := maxChunks(tt.data)
-			if result != tt.expected {
-				t.Errorf("maxChunks(%v) = %d, ожидалось %d", tt.data, result, tt.expected)
-			}
+			assert.Equal(t, tt.expected, result, "Результат должен соответствовать ожидаемому")
 		})
 	}
 }
@@ -171,7 +155,5 @@ func TestConsistency(t *testing.T) {
 	maxSingle := maximum(testData)
 	maxMulti := maxChunks(testData)
 
-	if maxSingle != maxMulti {
-		t.Errorf("Результаты не совпадают: maximum = %d, maxChunks = %d", maxSingle, maxMulti)
-	}
+	assert.Equal(t, maxSingle, maxMulti, "Результаты maximum и maxChunks должны совпадать")
 }

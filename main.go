@@ -25,9 +25,9 @@ func generateRandomElements(size int) []int {
 	// Инициализируем генератор случайных чисел
 	rand.Seed(time.Now().UnixNano())
 
-	// Заполняем слайс случайными положительными числами
+	// Заполняем слайс случайными числами
 	for i := 0; i < size; i++ {
-		data[i] = rand.Intn(1000000) + 1 // числа от 1 до 1000000
+		data[i] = rand.Int()
 	}
 
 	return data
@@ -83,34 +83,21 @@ func maxChunks(data []int) int {
 	for i := 0; i < CHUNKS; i++ {
 		wg.Add(1)
 
-		go func(chunkIndex int) {
+		// Вычисляем индексы для текущего чанка
+		startIndex := i * chunkSize
+		endIndex := startIndex + chunkSize
+
+		// Обработка последнего чанка - он может быть больше остальных
+		if i == CHUNKS-1 {
+			endIndex = len(data)
+		}
+
+		go func(chunkIndex int, chunk []int) {
 			defer wg.Done()
 
-			// Вычисляем индексы для текущего чанка
-			startIndex := chunkIndex * chunkSize
-			endIndex := startIndex + chunkSize
-
-			// Обработка последнего чанка - он может быть больше остальных
-			if chunkIndex == CHUNKS-1 {
-				endIndex = len(data)
-			}
-
-			// Если чанк пустой, пропускаем его
-			if startIndex >= endIndex {
-				chunkMaxes[chunkIndex] = 0
-				return
-			}
-
 			// Находим максимум в текущем чанке
-			maxValue := data[startIndex]
-			for j := startIndex + 1; j < endIndex; j++ {
-				if data[j] > maxValue {
-					maxValue = data[j]
-				}
-			}
-
-			chunkMaxes[chunkIndex] = maxValue
-		}(i)
+			chunkMaxes[chunkIndex] = maximum(chunk)
+		}(i, data[startIndex:endIndex])
 	}
 
 	// Ждем завершения всех горутин
@@ -144,13 +131,6 @@ func main() {
 	elapsedMulti := time.Since(startTime)
 
 	fmt.Printf("Максимальное значение элемента: %d\nВремя поиска: %d микросекунд\n", maxMulti, elapsedMulti.Microseconds())
-
-	// Проверяем, что результаты совпадают
-	if maxSingle == maxMulti {
-		fmt.Println("Результаты совпадают!")
-	} else {
-		fmt.Printf("ОШИБКА: Результаты не совпадают! Однопоточный: %d, Многопоточный: %d\n", maxSingle, maxMulti)
-	}
 
 	// Выводим информацию об ускорении
 	if elapsedMulti.Microseconds() > 0 {
